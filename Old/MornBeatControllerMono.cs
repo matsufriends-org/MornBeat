@@ -36,6 +36,7 @@ namespace MornBeat
         public double MusicPlayingTimeNoRepeat => AudioSettings.dspTime - _startDspTime + (_currentBeatMemo != null ? _currentBeatMemo.Offset : 0) + _offsetTime;
         public double MusicBeatTime => MusicPlayingTime / CurrentBeatLength;
         public double MusicBeatTimeNoRepeat => MusicPlayingTimeNoRepeat / CurrentBeatLength;
+        public MornBeatMemoSo CurrentBeatMemo => _currentBeatMemo;
 
         private void Update()
         {
