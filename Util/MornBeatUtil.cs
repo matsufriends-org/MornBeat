@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Threading;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace MornBeat
 {
@@ -46,6 +48,52 @@ namespace MornBeat
         internal static double Lerp(double a, double b, double t)
         {
             return a + (b - a) * t;
+        }
+
+        internal async static UniTask LoadAudioDataAsync(this AudioClip clip, CancellationToken ct)
+        {
+            if (clip == null)
+            {
+                return;
+            }
+
+            if (clip.preloadAudioData)
+            {
+                Log($"ロード済み！: {clip.name}");
+                return;
+            }
+
+            Log($"ロード開始...: {clip.name}");
+            clip.LoadAudioData();
+            while (clip.loadState != AudioDataLoadState.Loaded)
+            {
+                await UniTask.Yield(cancellationToken: ct);
+            }
+
+            Log($"ロード完了！: {clip.name}");
+        }
+
+        internal async static UniTask UnLoadAudioDataAsync(this AudioClip clip, CancellationToken ct)
+        {
+            if (clip == null)
+            {
+                return;
+            }
+
+            if (clip.preloadAudioData)
+            {
+                Log($"アンロード不要！: {clip.name}");
+                return;
+            }
+
+            Log($"アンロード開始...: {clip.name}");
+            clip.UnloadAudioData();
+            while (clip.loadState != AudioDataLoadState.Unloaded)
+            {
+                await UniTask.Yield(cancellationToken: ct);
+            }
+
+            Log($"アンロード完了！: {clip.name}");
         }
 
         internal static bool BitHas(this int self, int flag)

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -16,6 +19,7 @@ namespace MornBeat
         [SerializeField] [ReadOnly] private double _loopStartDspTime;
         [SerializeField] [ReadOnly] private double _startDspTime;
         [SerializeField] [ReadOnly] private double _offsetTime;
+        private bool _isLoading;
         private Subject<MornBeatTimingInfo> _beatSubject = new();
         private Subject<Unit> _endBeatSubject = new();
         private Subject<MornBeatMemoSo> _initializeBeatSubject = new();
@@ -31,9 +35,15 @@ namespace MornBeat
         public double CurrentBeatLength => 60d / CurrentBpm;
         public double StartDspTime => _startDspTime;
         /// <summary> ループ時に0から初期化 </summary>
-        public double MusicPlayingTime => AudioSettings.dspTime - _loopStartDspTime + (_currentBeatMemo != null ? _currentBeatMemo.Offset : 0) + _offsetTime;
+        public double MusicPlayingTime => AudioSettings.dspTime
+                                          - _loopStartDspTime
+                                          + (_currentBeatMemo != null ? _currentBeatMemo.Offset : 0)
+                                          + _offsetTime;
         /// <summary> ループ後に値を継続 </summary>
-        public double MusicPlayingTimeNoRepeat => AudioSettings.dspTime - _startDspTime + (_currentBeatMemo != null ? _currentBeatMemo.Offset : 0) + _offsetTime;
+        public double MusicPlayingTimeNoRepeat => AudioSettings.dspTime
+                                                  - _startDspTime
+                                                  + (_currentBeatMemo != null ? _currentBeatMemo.Offset : 0)
+                                                  + _offsetTime;
         public double MusicBeatTime => MusicPlayingTime / CurrentBeatLength;
         public double MusicBeatTimeNoRepeat => MusicPlayingTimeNoRepeat / CurrentBeatLength;
         public MornBeatMemoSo CurrentBeatMemo => _currentBeatMemo;
@@ -67,38 +77,60 @@ namespace MornBeat
 
         public float GetBeatTiming(int tick)
         {
-            if (_currentBeatMemo == null) return Mathf.Infinity;
+            if (_currentBeatMemo == null)
+                return Mathf.Infinity;
             return _currentBeatMemo.GetBeatTiming(tick);
         }
 
         private void UpdateBeatInternal()
         {
-            if (_currentBeatMemo == null) return;
+            if (_currentBeatMemo == null)
+                return;
             var time = MusicPlayingTime;
             if (_waitLoop)
             {
-                if (time < _currentBeatMemo.TotalLength) return;
+                if (time < _currentBeatMemo.TotalLength)
+                    return;
                 _loopStartDspTime += _currentBeatMemo.LoopLength;
                 time -= _currentBeatMemo.LoopLength;
                 _waitLoop = false;
             }
 
-            if (time < _currentBeatMemo.GetBeatTiming(_tick)) return;
+            if (time < _currentBeatMemo.GetBeatTiming(_tick))
+                return;
             CurrentBpm = _currentBeatMemo.GetBpm(time);
             _beatSubject.OnNext(new MornBeatTimingInfo(_tick, _currentBeatMemo.MeasureTickCount));
             _tick++;
             if (_tick == _currentBeatMemo.TickSum)
             {
-                if (_currentBeatMemo.IsLoop) _tick = _currentBeatMemo.IntroTickSum;
+                if (_currentBeatMemo.IsLoop)
+                    _tick = _currentBeatMemo.IntroTickSum;
                 _waitLoop = true;
                 _endBeatSubject.OnNext(Unit.Default);
             }
         }
 
-        public void InitializeBeat(MornBeatMemoSo beatMemo, bool isForceInitialize = false)
+        public async UniTask InitializeBeatAsync(MornBeatMemoSo beatMemo, bool isForceInitialize = false, CancellationToken ct = default)
         {
-            if (_currentBeatMemo == beatMemo && isForceInitialize == false) return;
-            _currentBeatMemo = beatMemo;
+            if (_currentBeatMemo == beatMemo && isForceInitialize == false)
+            {
+                return;
+            }
+            _isLoading = true;
+            var taskList = new List<UniTask>();
+            if (_currentBeatMemo != null)
+            {
+                _introAudioSource.Stop();
+                _loopAudioSource.Stop();
+                taskList.Add(_currentBeatMemo.IntroClip.UnLoadAudioDataAsync(ct));
+                taskList.Add(_currentBeatMemo.Clip.UnLoadAudioDataAsync(ct));
+            }
+
+            taskList.Add(beatMemo.IntroClip.LoadAudioDataAsync(ct));
+            taskList.Add(beatMemo.Clip.LoadAudioDataAsync(ct));
+
+            await UniTask.WhenAll(taskList).SuppressCancellationThrow();
+
             _tick = 0;
             _waitLoop = false;
             _startDspTime = AudioSettings.dspTime + PlayStartOffset;
@@ -111,9 +143,10 @@ namespace MornBeat
             _loopAudioSource.volume = beatMemo.Volume;
             _introAudioSource.PlayScheduled(_startDspTime);
             _loopAudioSource.PlayScheduled(_startDspTime + beatMemo.IntroLength);
+            _currentBeatMemo = beatMemo;
             _initializeBeatSubject.OnNext(beatMemo);
         }
-
+        
         public int GetNearTick(out double nearDif)
         {
             return GetNearTickBySpecifiedBeat(out nearDif, _currentBeatMemo.MeasureTickCount);
