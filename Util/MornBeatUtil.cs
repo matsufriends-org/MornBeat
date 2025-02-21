@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MornBeat
 {
-    internal static class MornBeatUtil
+    public static class MornBeatUtil
     {
 #if DISABLE_MORN_BEAT_LOG
         private const bool ShowLOG = false;
@@ -50,14 +50,14 @@ namespace MornBeat
             return a + (b - a) * t;
         }
 
-        internal async static UniTask LoadAudioDataAsync(this AudioClip clip, CancellationToken ct)
+        public async static UniTask LoadAsync(this AudioClip clip, CancellationToken ct = default)
         {
             if (clip == null)
             {
                 return;
             }
 
-            if (clip.preloadAudioData)
+            if (clip.preloadAudioData || clip.loadState == AudioDataLoadState.Loaded)
             {
                 Log($"ロード済み！: {clip.name}");
                 return;
@@ -73,14 +73,14 @@ namespace MornBeat
             Log($"ロード完了！: {clip.name}");
         }
 
-        internal async static UniTask UnLoadAudioDataAsync(this AudioClip clip, CancellationToken ct)
+        public async static UniTask UnloadAsync(this AudioClip clip, CancellationToken ct = default)
         {
             if (clip == null)
             {
                 return;
             }
 
-            if (clip.preloadAudioData)
+            if (clip.preloadAudioData || clip.loadState == AudioDataLoadState.Unloaded)
             {
                 Log($"アンロード不要！: {clip.name}");
                 return;
