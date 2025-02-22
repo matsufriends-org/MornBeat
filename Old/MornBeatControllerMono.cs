@@ -121,7 +121,7 @@ namespace MornBeat
             CurrentBpm = _beatMemo.GetBpm(time);
             _beatSubject.OnNext(new MornBeatTimingInfo(_tick, _beatMemo.MeasureTickCount));
             _tick++;
-            if (_tick == _beatMemo.TickSum)
+            if (_tick == _beatMemo.TotalTickSum)
             {
                 if (_beatMemo.IsLoop)
                 {
@@ -190,7 +190,7 @@ namespace MornBeat
                 nexTime = GetBeatTiming(nextTick);
             }
 
-            while (nexTime < curTime && nextTick + tickSize < _beatMemo.TickSum)
+            while (nexTime < curTime && nextTick + tickSize < _beatMemo.TotalTickSum)
             {
                 lastTick += tickSize;
                 nextTick += tickSize;

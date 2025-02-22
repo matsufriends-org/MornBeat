@@ -67,5 +67,15 @@
         {
             return (CurrentTick + offsetTick) % TickCountPerMeasure == numerator * TickCountPerMeasure / beat;
         }
+        
+        /// <summary>
+        /// 1小節をmeasureTick分割した、tick拍の拍に合うかどうか
+        /// </summary>
+        public bool IsJust(int tick, int measureTick)
+        {
+            var tickScale = (float)TickCountPerMeasure / measureTick;
+            var measureCount = 1 + tick / measureTick;
+            return (int)(CurrentTick % (measureCount * measureTick * tickScale)) == (int)(tick * tickScale);
+        }
     }
 }

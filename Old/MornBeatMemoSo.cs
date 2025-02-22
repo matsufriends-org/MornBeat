@@ -26,11 +26,12 @@ namespace MornBeat
         public int MeasureTickCount => _measureTickCount;
         public int BeatCount => _beatCount;
         public int IntroTickSum => _introTickSum;
-        public int TickSum => _timingList.Count;
+        public int LoopTickSum => TotalTickSum - _introTickSum;
+        public int TotalTickSum => _timingList.Count;
         public AudioClip IntroClip => _introClip;
         public AudioClip Clip => _clip;
         public float IntroLength => _introClip == null ? 0 : _introClip.length;
-        public float LoopLength => _clip.length;
+        public float LoopLength => _clip ==null ? 0 : _clip.length;
         public float TotalLength => IntroLength + LoopLength;
         public float Volume => _volume;
         internal float Offset => _offset;
@@ -42,7 +43,7 @@ namespace MornBeat
 
         public float GetBeatTiming(int index)
         {
-            if (index < 0 || TickSum <= index) return Mathf.Infinity;
+            if (index < 0 || TotalTickSum <= index) return Mathf.Infinity;
             return _timingList[index];
         }
 
