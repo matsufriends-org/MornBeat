@@ -7,7 +7,8 @@ namespace MornBeat
     public struct MornBeatStartInfo
     {
         public MornBeatMemoSo BeatMemo;
-        public IReadOnlyList<AudioClip> LoadWith;
+        public IEnumerable<AudioClip> LoadWith;
+        public IEnumerable<AudioClip> UnLoadWith;
         public double? StartDspTime;
         public float? FadeDuration;
         public bool? IsForceInitialize;

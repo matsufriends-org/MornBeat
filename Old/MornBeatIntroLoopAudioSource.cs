@@ -11,26 +11,23 @@ namespace MornBeat
         [SerializeField] private AudioSource _audioSourceIntro;
         [SerializeField] private AudioSource _audioSourceLoop;
         [SerializeField] private List<AudioClip> _loadWith;
+        [SerializeField] private List<AudioClip> _unloadWith;
         private CancellationTokenSource _cts;
 
         /// <summary> null可 </summary>
-        public async UniTask LoadAsync(AudioClip introClip, AudioClip loopClip,
-            IReadOnlyList<AudioClip> loadWith = null, CancellationToken ct = default)
+        public async UniTask LoadAsync(AudioClip introClip, AudioClip loopClip, IEnumerable<AudioClip> loadWith = null,
+            IEnumerable<AudioClip> unloadWith = null, CancellationToken ct = default)
         {
-            // Unload忘れを防ぐ
-            Assert.IsTrue(
-                _audioSourceIntro.clip == null || _audioSourceIntro.clip.loadState == AudioDataLoadState.Unloaded);
-            Assert.IsTrue(
-                _audioSourceLoop.clip == null || _audioSourceLoop.clip.loadState == AudioDataLoadState.Unloaded);
-            foreach (var clip in _loadWith)
-            {
-                Assert.IsTrue(clip == null || clip.loadState == AudioDataLoadState.Unloaded);
-            }
-
             _loadWith.Clear();
             if (loadWith != null)
             {
                 _loadWith.AddRange(loadWith);
+            }
+            
+            _unloadWith.Clear();
+            if (unloadWith != null)
+            {
+                _unloadWith.AddRange(unloadWith);
             }
 
             _audioSourceIntro.clip = introClip;
@@ -55,11 +52,13 @@ namespace MornBeat
                 _audioSourceIntro.clip == null || _audioSourceIntro.clip.loadState == AudioDataLoadState.Loaded);
             Assert.IsTrue(
                 _audioSourceLoop.clip == null || _audioSourceLoop.clip.loadState == AudioDataLoadState.Loaded);
-            foreach (var clip in _loadWith)
-            {
-                Assert.IsTrue(clip == null || clip.loadState == AudioDataLoadState.Loaded);
-            }
 
+            if (startDspTime < AudioSettings.dspTime)
+            {
+                MornBeatUtil.LogError($"再生時刻が過去です。startDspTime: {startDspTime}, dspTime: {AudioSettings.dspTime}");
+            }
+            
+            MornBeatUtil.Log($"PlayWithFadeIn startDspTime: {startDspTime}, dspTime: {AudioSettings.dspTime}");
             if (_audioSourceIntro.clip != null)
             {
                 // イントロ込みで再生
@@ -87,6 +86,11 @@ namespace MornBeat
             taskList.Add(_audioSourceIntro.clip.UnloadAsync(ct));
             taskList.Add(_audioSourceLoop.clip.UnloadAsync(ct));
             foreach (var clip in _loadWith)
+            {
+                taskList.Add(clip.UnloadAsync(ct));
+            }
+            
+            foreach (var clip in _unloadWith)
             {
                 taskList.Add(clip.UnloadAsync(ct));
             }
@@ -118,6 +122,7 @@ namespace MornBeat
                     _audioSourceIntro.Stop();
                     _audioSourceLoop.Stop();
                 }
+
                 return;
             }
 
@@ -146,7 +151,7 @@ namespace MornBeat
             {
                 _audioSourceIntro.Stop();
                 _audioSourceLoop.Stop();
-            }   
+            }
         }
     }
 }

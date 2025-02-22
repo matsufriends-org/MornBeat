@@ -22,11 +22,13 @@ namespace MornBeat
         [SerializeField] [ReadOnly] private double _offsetTime;
         private readonly Subject<MornBeatTimingInfo> _beatSubject = new();
         private readonly Subject<Unit> _endBeatSubject = new();
+        private readonly Subject<double> _setDspTimeSubject = new();
         private readonly Subject<MornBeatMemoSo> _initializeBeatSubject = new();
         private readonly Subject<Unit> _updateBeatSubject = new();
         public IObservable<MornBeatTimingInfo> OnBeat => _beatSubject;
         public IObservable<MornBeatMemoSo> OnInitializeBeat => _initializeBeatSubject;
         public IObservable<Unit> OnEndBeat => _endBeatSubject;
+        public IObservable<double> OnSetDspTime => _setDspTimeSubject;
         public IObservable<Unit> OnUpdateBeat => _updateBeatSubject;
         public double CurrentBpm { get; private set; } = 120;
         public int MeasureTickCount => _beatMemo.MeasureTickCount;
@@ -132,17 +134,17 @@ namespace MornBeat
                 _endBeatSubject.OnNext(Unit.Default);
             }
         }
-        
+
         public async UniTask StartAsync(MornBeatStartInfo startInfo)
         {
             Assert.IsNotNull(startInfo.BeatMemo);
             var beatMemo = startInfo.BeatMemo;
             var loadWith = startInfo.LoadWith;
+            var unloadWith = startInfo.UnLoadWith;
             var startDspTime = startInfo.StartDspTime ?? AudioSettings.dspTime + PlayStartOffset;
             var fadeDuration = startInfo.FadeDuration ?? 0;
             var isForceInitialize = startInfo.IsForceInitialize ?? false;
             var ct = startInfo.Ct;
-            
             if (_beatMemo == beatMemo && isForceInitialize == false)
             {
                 return;
@@ -151,20 +153,28 @@ namespace MornBeat
             _isUsingAudioSourceA = !_isUsingAudioSourceA;
             var current = CurrentAudioSource;
             var other = OtherAudioSource;
-            await current.LoadAsync(beatMemo.IntroClip, beatMemo.Clip, loadWith, ct);
+            
+            await current.LoadAsync(beatMemo.IntroClip, beatMemo.Clip, loadWith, unloadWith, ct);
+
+            if (startDspTime < AudioSettings.dspTime)
+            {
+                var cached = startDspTime;
+                startDspTime = AudioSettings.dspTime + PlayStartOffset;
+                MornBeatUtil.LogError($"再生時刻が過去のため補正します。[{cached} -> {startDspTime}]");
+            }
+            
             _beatMemo = beatMemo;
             _tick = 0;
             _waitLoop = false;
             _startDspTime = startDspTime;
             _loopStartDspTime = _startDspTime;
             _initializeBeatSubject.OnNext(beatMemo);
-            
+            _setDspTimeSubject.OnNext(startDspTime);
             var taskList = new List<UniTask>
             {
                 other.UnloadWithFadeOutAsync(fadeDuration, ct),
                 current.PlayWithFadeIn(startDspTime, fadeDuration, ct)
             };
-            
             await UniTask.WhenAll(taskList).SuppressCancellationThrow();
         }
 
