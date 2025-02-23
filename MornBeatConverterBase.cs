@@ -29,7 +29,7 @@ namespace MornBeat
                         var endIndex = text.IndexOf(MornBeatUtil.CloseSplit, index);
                         if (endIndex == -1)
                         {
-                            MornBeatUtil.LogWarning("閉じられていません。");
+                            MornBeatGlobal.LogWarning("閉じられていません。");
                             break;
                         }
 

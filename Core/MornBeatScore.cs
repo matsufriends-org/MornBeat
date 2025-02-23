@@ -7,7 +7,7 @@ using UnityEditor;
 namespace MornBeat
 {
     [Serializable]
-    internal struct MornBeatScore
+    public struct MornBeatScore
     {
         [SerializeField] public TextAsset Score;
     }

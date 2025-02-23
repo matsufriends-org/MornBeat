@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -6,38 +6,8 @@ namespace MornBeat
 {
     public static class MornBeatUtil
     {
-#if DISABLE_MORN_BEAT_LOG
-        private const bool ShowLOG = false;
-#else
-        private const bool ShowLOG = true;
-#endif
-        private const string Prefix = "[<color=green>MornBeat</color>] ";
         internal const char OpenSplit = '[';
         internal const char CloseSplit = ']';
-
-        internal static void Log(string message)
-        {
-            if (ShowLOG)
-            {
-                Debug.Log(Prefix + message);
-            }
-        }
-
-        internal static void LogError(string message)
-        {
-            if (ShowLOG)
-            {
-                Debug.LogError(Prefix + message);
-            }
-        }
-
-        internal static void LogWarning(string message)
-        {
-            if (ShowLOG)
-            {
-                Debug.LogWarning(Prefix + message);
-            }
-        }
 
         internal static double InverseLerp(double a, double b, double value)
         {
@@ -59,18 +29,18 @@ namespace MornBeat
 
             if (clip.preloadAudioData || clip.loadState == AudioDataLoadState.Loaded)
             {
-                Log($"ロード済み！: {clip.name}");
+                MornBeatGlobal.Log($"ロード済み！: {clip.name}");
                 return;
             }
 
-            Log($"ロード開始...: {clip.name}");
+            MornBeatGlobal.Log($"ロード開始...: {clip.name}");
             clip.LoadAudioData();
             while (clip.loadState != AudioDataLoadState.Loaded)
             {
                 await UniTask.Yield(cancellationToken: ct);
             }
 
-            Log($"ロード完了！: {clip.name}");
+            MornBeatGlobal.Log($"ロード完了！: {clip.name}");
         }
 
         public async static UniTask UnloadAsync(this AudioClip clip, CancellationToken ct = default)
@@ -82,41 +52,41 @@ namespace MornBeat
 
             if (clip.preloadAudioData || clip.loadState == AudioDataLoadState.Unloaded)
             {
-                Log($"アンロード不要！: {clip.name}");
+                MornBeatGlobal.Log($"アンロード不要！: {clip.name}");
                 return;
             }
 
-            Log($"アンロード開始...: {clip.name}");
+            MornBeatGlobal.Log($"アンロード開始...: {clip.name}");
             clip.UnloadAudioData();
             while (clip.loadState != AudioDataLoadState.Unloaded)
             {
                 await UniTask.Yield(cancellationToken: ct);
             }
 
-            Log($"アンロード完了！: {clip.name}");
+            MornBeatGlobal.Log($"アンロード完了！: {clip.name}");
         }
 
-        internal static bool BitHas(this int self, int flag)
+        public static bool BitHas(this int self, int flag)
         {
             return (self & flag) != 0;
         }
 
-        internal static bool BitEqual(this int self, int flag)
+        public static bool BitEqual(this int self, int flag)
         {
             return (self & flag) == flag;
         }
 
-        internal static int BitAdd(this int self, int flag)
+        public static int BitAdd(this int self, int flag)
         {
             return self | flag;
         }
 
-        internal static int BitRemove(this int self, int flag)
+        public static int BitRemove(this int self, int flag)
         {
             return self & ~flag;
         }
 
-        internal static int BitXor(this int self, int flag)
+        public static int BitXor(this int self, int flag)
         {
             return self ^ flag;
         }

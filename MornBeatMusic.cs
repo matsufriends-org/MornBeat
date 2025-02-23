@@ -90,7 +90,7 @@ namespace MornBeat
             if (GUILayout.Button("Generate", GUILayout.Height(30)))
             {
                 var isSuccess = true;
-                MornBeatUtil.Log("Generate Start");
+                MornBeatGlobal.Log("Generate Start");
                 var result = new List<MornBeatMeasure>();
                 result.Add(new MornBeatMeasure(1, 0));
                 var frequency = music.MusicClip.frequency;
@@ -101,35 +101,35 @@ namespace MornBeat
                     if (phase.Transition.StartBpm == 0)
                     {
                         isSuccess = false;
-                        MornBeatUtil.LogError("StartBpm is 0");
+                        MornBeatGlobal.LogError("StartBpm is 0");
                         break;
                     }
 
                     if (phase.Transition.EndBpm == 0)
                     {
                         isSuccess = false;
-                        MornBeatUtil.LogError("EndBpm is 0");
+                        MornBeatGlobal.LogError("EndBpm is 0");
                         break;
                     }
 
                     if (phase.Length.Beat == 0)
                     {
                         isSuccess = false;
-                        MornBeatUtil.LogError("BeatCount is 0");
+                        MornBeatGlobal.LogError("BeatCount is 0");
                         break;
                     }
 
                     if (phase.Length.NoteType == 0)
                     {
                         isSuccess = false;
-                        MornBeatUtil.LogError("BeatType is 0");
+                        MornBeatGlobal.LogError("BeatType is 0");
                         break;
                     }
 
                     if (phase.Length.Measure == 0)
                     {
                         isSuccess = false;
-                        MornBeatUtil.LogError("MeasureCount is 0");
+                        MornBeatGlobal.LogError("MeasureCount is 0");
                         break;
                     }
 
@@ -168,11 +168,11 @@ namespace MornBeat
                 music.MeasureList.AddRange(result);
                 if (isSuccess)
                 {
-                    MornBeatUtil.Log("Generate Success");
+                    MornBeatGlobal.Log("Generate Success");
                 }
                 else
                 {
-                    MornBeatUtil.LogError("Generate Failed. Please check the log.");
+                    MornBeatGlobal.LogError("Generate Failed. Please check the log.");
                 }
             }
 
@@ -186,7 +186,7 @@ namespace MornBeat
             EditorGUILayout.PropertyField(_timeListSerializedProperty);
             if (GUILayout.Button("Generate", GUILayout.Height(30)))
             {
-                MornBeatUtil.Log("Generate Start");
+                MornBeatGlobal.Log("Generate Start");
                 var result = new List<MornBeatMeasure>();
                 result.Add(new MornBeatMeasure(1, 0));
                 var frequency = music.MusicClip.frequency;
@@ -198,7 +198,7 @@ namespace MornBeat
 
                 music.MeasureList.Clear();
                 music.MeasureList.AddRange(result);
-                MornBeatUtil.Log("Generate End");
+                MornBeatGlobal.Log("Generate End");
             }
 
             EditorGUI.indentLevel--;

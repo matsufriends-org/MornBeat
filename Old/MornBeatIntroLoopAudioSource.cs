@@ -55,10 +55,10 @@ namespace MornBeat
 
             if (startDspTime < AudioSettings.dspTime)
             {
-                MornBeatUtil.LogError($"再生時刻が過去です。startDspTime: {startDspTime}, dspTime: {AudioSettings.dspTime}");
+                MornBeatGlobal.LogError($"再生時刻が過去です。startDspTime: {startDspTime}, dspTime: {AudioSettings.dspTime}");
             }
             
-            MornBeatUtil.Log($"PlayWithFadeIn startDspTime: {startDspTime}, dspTime: {AudioSettings.dspTime}");
+            MornBeatGlobal.Log($"PlayWithFadeIn startDspTime: {startDspTime}, dspTime: {AudioSettings.dspTime}");
             if (_audioSourceIntro.clip != null)
             {
                 // イントロ込みで再生

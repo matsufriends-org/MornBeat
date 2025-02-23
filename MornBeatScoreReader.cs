@@ -24,7 +24,7 @@ namespace MornBeat
                         var endIndex = line.IndexOf(MornBeatUtil.CloseSplit, i);
                         if (endIndex == -1)
                         {
-                            MornBeatUtil.LogError("閉じられていません。");
+                            MornBeatGlobal.LogError("閉じられていません。");
                             break;
                         }
 

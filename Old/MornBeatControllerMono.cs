@@ -160,7 +160,7 @@ namespace MornBeat
             {
                 var cached = startDspTime;
                 startDspTime = AudioSettings.dspTime + PlayStartOffset;
-                MornBeatUtil.LogError($"再生時刻が過去のため補正します。[{cached} -> {startDspTime}]");
+                MornBeatGlobal.LogError($"再生時刻が過去のため補正します。[{cached} -> {startDspTime}]");
             }
             
             _beatMemo = beatMemo;
