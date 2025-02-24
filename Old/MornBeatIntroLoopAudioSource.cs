@@ -10,26 +10,31 @@ namespace MornBeat
     {
         [SerializeField] private AudioSource _audioSourceIntro;
         [SerializeField] private AudioSource _audioSourceLoop;
-        [SerializeField] private List<AudioClip> _loadWith;
-        [SerializeField] private List<AudioClip> _unloadWith;
         private CancellationTokenSource _cts;
 
-        /// <summary> null可 </summary>
-        public async UniTask LoadAsync(AudioClip introClip, AudioClip loopClip, IEnumerable<AudioClip> loadWith = null,
-            IEnumerable<AudioClip> unloadWith = null, CancellationToken ct = default)
+        private bool Contain(AudioClip clip)
         {
-            _loadWith.Clear();
-            if (loadWith != null)
+            if (clip == null)
             {
-                _loadWith.AddRange(loadWith);
+                return false;
             }
             
-            _unloadWith.Clear();
-            if (unloadWith != null)
+            if (_audioSourceIntro.clip == clip)
             {
-                _unloadWith.AddRange(unloadWith);
+                return true;
+            }
+            
+            if (_audioSourceLoop.clip == clip)
+            {
+                return true;
             }
 
+            return false;
+        }
+        
+        /// <summary> null可 </summary>
+        public async UniTask LoadAsync(AudioClip introClip, AudioClip loopClip, CancellationToken ct = default)
+        {
             _audioSourceIntro.clip = introClip;
             _audioSourceIntro.loop = false;
             _audioSourceLoop.clip = loopClip;
@@ -37,11 +42,6 @@ namespace MornBeat
             var taskList = new List<UniTask>();
             taskList.Add(introClip.LoadAsync(ct));
             taskList.Add(loopClip.LoadAsync(ct));
-            foreach (var clip in _loadWith)
-            {
-                taskList.Add(clip.LoadAsync(ct));
-            }
-
             await UniTask.WhenAll(taskList);
         }
 
@@ -79,23 +79,24 @@ namespace MornBeat
             await FadeInAsync(duration, ct);
         }
 
-        public async UniTask UnloadWithFadeOutAsync(float duration, CancellationToken ct = default)
+        public async UniTask UnloadWithFadeOutAsync(MornBeatIntroLoopAudioSource other, float duration, CancellationToken ct = default)
         {
             await FadeOutAsync(duration, ct);
+            var unloadClipList = new List<AudioClip>();
+            unloadClipList.Add(_audioSourceIntro.clip);
+            unloadClipList.Add(_audioSourceLoop.clip);
             var taskList = new List<UniTask>();
-            taskList.Add(_audioSourceIntro.clip.UnloadAsync(ct));
-            taskList.Add(_audioSourceLoop.clip.UnloadAsync(ct));
-            foreach (var clip in _loadWith)
+            foreach (var clip in unloadClipList)
             {
-                taskList.Add(clip.UnloadAsync(ct));
-            }
-            
-            foreach (var clip in _unloadWith)
-            {
-                taskList.Add(clip.UnloadAsync(ct));
+                if (other == null || !other.Contain(clip))
+                {
+                    taskList.Add(clip.UnloadAsync(ct));
+                }
             }
 
             await UniTask.WhenAll(taskList);
+            _audioSourceIntro.clip = null;
+            _audioSourceLoop.clip = null;
         }
 
         public async UniTask FadeInAsync(float duration, CancellationToken ct = default)

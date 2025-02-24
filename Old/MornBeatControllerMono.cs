@@ -76,7 +76,7 @@ namespace MornBeat
         {
             var current = CurrentAudioSource;
             _isUsingAudioSourceA = !_isUsingAudioSourceA;
-            await current.UnloadWithFadeOutAsync(duration, ct);
+            await current.UnloadWithFadeOutAsync(null, duration, ct);
             _tick = 0;
             CurrentBpm = 120;
             _beatMemo = null;
@@ -139,8 +139,6 @@ namespace MornBeat
         {
             Assert.IsNotNull(startInfo.BeatMemo);
             var beatMemo = startInfo.BeatMemo;
-            var loadWith = startInfo.LoadWith;
-            var unloadWith = startInfo.UnLoadWith;
             var startDspTime = startInfo.StartDspTime ?? AudioSettings.dspTime + PlayStartOffset;
             var fadeDuration = startInfo.FadeDuration ?? 0;
             var isForceInitialize = startInfo.IsForceInitialize ?? false;
@@ -154,7 +152,7 @@ namespace MornBeat
             var current = CurrentAudioSource;
             var other = OtherAudioSource;
             
-            await current.LoadAsync(beatMemo.IntroClip, beatMemo.Clip, loadWith, unloadWith, ct);
+            await current.LoadAsync(beatMemo.IntroClip, beatMemo.Clip, ct);
 
             if (startDspTime < AudioSettings.dspTime)
             {
@@ -172,7 +170,7 @@ namespace MornBeat
             _setDspTimeSubject.OnNext(startDspTime);
             var taskList = new List<UniTask>
             {
-                other.UnloadWithFadeOutAsync(fadeDuration, ct),
+                other.UnloadWithFadeOutAsync(current, fadeDuration, ct),
                 current.PlayWithFadeIn(startDspTime, fadeDuration, ct)
             };
             await UniTask.WhenAll(taskList).SuppressCancellationThrow();
