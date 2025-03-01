@@ -11,9 +11,7 @@ namespace MornBeat
     public sealed class MornBeatControllerMono : MonoBehaviour
     {
         private const double PlayStartOffset = 0.5d;
-        [SerializeField] [ReadOnly] private bool _isUsingAudioSourceA;
-        [SerializeField] private MornBeatIntroLoopAudioSource _audioSourceA;
-        [SerializeField] private MornBeatIntroLoopAudioSource _audioSourceB;
+        [SerializeField] private MornBeatAudioSourceModule _audioSourceModule;
         [SerializeField] [ReadOnly] private MornBeatMemoSo _beatMemo;
         [SerializeField] [ReadOnly] private int _tick;
         [SerializeField] [ReadOnly] private bool _waitLoop;
@@ -49,8 +47,6 @@ namespace MornBeat
         public double MusicBeatTime => MusicPlayingTime / CurrentBeatLength;
         public double MusicBeatTimeNoRepeat => MusicPlayingTimeNoRepeat / CurrentBeatLength;
         public MornBeatMemoSo BeatMemo => _beatMemo;
-        private MornBeatIntroLoopAudioSource CurrentAudioSource => _isUsingAudioSourceA ? _audioSourceA : _audioSourceB;
-        private MornBeatIntroLoopAudioSource OtherAudioSource => _isUsingAudioSourceA ? _audioSourceB : _audioSourceA;
 
         private void Update()
         {
@@ -74,8 +70,7 @@ namespace MornBeat
 
         public async UniTask StopBeatAsync(float duration = 0, CancellationToken ct = default)
         {
-            var current = CurrentAudioSource;
-            _isUsingAudioSourceA = !_isUsingAudioSourceA;
+            var current = _audioSourceModule.GetCurrent(true);
             await current.UnloadWithFadeOutAsync(null, duration, ct);
             _tick = 0;
             CurrentBpm = 120;
@@ -148,11 +143,10 @@ namespace MornBeat
                 return;
             }
 
-            _isUsingAudioSourceA = !_isUsingAudioSourceA;
-            var current = CurrentAudioSource;
-            var other = OtherAudioSource;
+            var prev = _audioSourceModule.GetCurrent();
+            var next = _audioSourceModule.GetOther(true);
             
-            await current.LoadAsync(beatMemo.IntroClip, beatMemo.Clip, ct);
+            await next.LoadAsync(beatMemo.IntroClip, beatMemo.Clip, ct);
 
             if (startDspTime < AudioSettings.dspTime)
             {
@@ -170,8 +164,8 @@ namespace MornBeat
             _setDspTimeSubject.OnNext(startDspTime);
             var taskList = new List<UniTask>
             {
-                other.UnloadWithFadeOutAsync(current, fadeDuration, ct),
-                current.PlayWithFadeIn(startDspTime, fadeDuration, ct)
+                prev.UnloadWithFadeOutAsync(next, fadeDuration, ct),
+                next.PlayWithFadeIn(startDspTime, fadeDuration, ct)
             };
             await UniTask.WhenAll(taskList).SuppressCancellationThrow();
         }
