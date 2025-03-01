@@ -54,14 +54,6 @@ namespace MornBeat
             _updateBeatSubject.OnNext(Unit.Default);
         }
 
-        public async UniTask PreLoadAsync(MornBeatMemoSo beatMemo, CancellationToken ct = default)
-        {
-            if (beatMemo != null)
-            {
-                await beatMemo.IntroClip.LoadAsync(ct);
-                await beatMemo.Clip.LoadAsync(ct);
-            }
-        }
 
         public void ChangeOffset(double offset)
         {
