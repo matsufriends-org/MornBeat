@@ -25,6 +25,7 @@ namespace MornBeat
         public bool IsLoop => _isLoop;
         public int MeasureTickCount => _measureTickCount;
         public int BeatCount => _beatCount;
+        public int BeatTick => MeasureTickCount / BeatCount;
         public int IntroTickSum => _introTickSum;
         public int LoopTickSum => TotalTickSum - _introTickSum;
         public int TotalTickSum => _timingList.Count;
