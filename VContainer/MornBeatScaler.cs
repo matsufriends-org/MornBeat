@@ -5,7 +5,7 @@ using VContainer;
 
 namespace MornBeat
 {
-    public class MornBeatScaler : MonoBehaviour
+    public sealed class MornBeatScaler : MonoBehaviour
     {
         [Inject] private MornBeatControllerMono _beatController;
         [SerializeField] private MornBeatScaleSettings _settings;
@@ -14,7 +14,7 @@ namespace MornBeat
         private void Start()
         {
             _originScale = transform.localScale;
-            _beatController.OnBeat.Where(x => x.IsJustForAnyBeat(_settings.PerBeat)).Subscribe(_ => transform.localScale = _settings.AimScale).AddTo(this);
+            _beatController.PlayModule.OnBeat.Where(x => x.IsJustForAnyBeat(_settings.PerBeat)).Subscribe(_ => transform.localScale = _settings.AimScale).AddTo(this);
         }
 
         private void Update()
