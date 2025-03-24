@@ -18,7 +18,9 @@ namespace MornBeat
         private readonly Subject<MornBeatTimingInfo> _beatSubject = new();
         private readonly Subject<Unit> _endBeatSubject = new();
         public MornBeatMemoSo BeatMemo => _beatMemo;
+        public float SpeedScale => (float)_currentBpm / 120f;
         public double CurrentBpm => _currentBpm;
+        public float BeatLengthF => (float)(60d / CurrentBpm);
         public double CurrentBeatLength => 60d / CurrentBpm;
         public double StartDspTime => _startDspTime;
         /// <summary> ループ時に0から初期化（単位：秒）</summary>
