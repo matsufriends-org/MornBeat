@@ -10,7 +10,7 @@ namespace MornBeat
         [SerializeField] private int _tick;
         [SerializeField] private TEnum _beatActionType;
         public int Measure => _measure;
-        public int Tick => _tick;
+        public int TickOnMeasure => _tick;
         public TEnum BeatActionType => _beatActionType;
 
         public MornBeatAction(int measure, int tick, TEnum beatActionType)
@@ -18,6 +18,16 @@ namespace MornBeat
             _measure = measure;
             _tick = tick;
             _beatActionType = beatActionType;
+        }
+
+        public MornBeatAction<TEnum> Add(int measure, int tick)
+        {
+            return new MornBeatAction<TEnum>(_measure + measure, _tick + tick, _beatActionType);
+        }
+
+        public int Tick(int measurerTick)
+        {
+            return _measure * measurerTick + _tick;
         }
     }
 }

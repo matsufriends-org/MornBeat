@@ -23,6 +23,7 @@ namespace MornBeat
         public float BeatLengthF => (float)(60d / CurrentBpm);
         public double CurrentBeatLength => 60d / CurrentBpm;
         public double StartDspTime => _startDspTime;
+        public int MeasureTick => _beatMemo?.MeasureTickCount ?? 0;
         /// <summary> ループ時に0から初期化（単位：秒）</summary>
         public double MusicPlayingTime => AudioSettings.dspTime
                                           - _loopStartDspTime
