@@ -50,6 +50,7 @@ namespace MornBeat
             _waitLoop = false;
             _startDspTime = setInfo.StartDspTime;
             _loopStartDspTime = _startDspTime;
+            _currentBpm = _beatMemo.GetBpm(0);
             _initializeBeatSubject.OnNext(setInfo);
         }
 

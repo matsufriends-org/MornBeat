@@ -89,7 +89,7 @@ namespace MornBeat
                     return _bpmAndTimeInfoList[0].Bpm;
             }
 
-            if (time < _bpmAndTimeInfoList[0].Time) return _bpmAndTimeInfoList[0].Bpm;
+            if (time <= _bpmAndTimeInfoList[0].Time) return _bpmAndTimeInfoList[0].Bpm;
             for (var i = 1; i < _bpmAndTimeInfoList.Count; i++)
             {
                 if (_bpmAndTimeInfoList[i].Time <= time) continue;
