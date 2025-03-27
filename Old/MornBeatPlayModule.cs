@@ -16,6 +16,7 @@ namespace MornBeat
         [SerializeField] [ReadOnly] private double _offsetTime;
         private readonly Subject<MornBeatSetInfo> _initializeBeatSubject = new();
         private readonly Subject<MornBeatTimingInfo> _beatSubject = new();
+        private readonly Subject<Unit> _loopSubject = new();
         private readonly Subject<Unit> _endBeatSubject = new();
         public MornBeatMemoSo BeatMemo => _beatMemo;
         public float SpeedScale => (float)_currentBpm / 120f;
@@ -41,6 +42,7 @@ namespace MornBeat
         public double OffsetTime => _offsetTime;
         public IObservable<MornBeatSetInfo> OnInitializeBeat => _initializeBeatSubject;
         public IObservable<MornBeatTimingInfo> OnBeat => _beatSubject;
+        public IObservable<Unit> OnLoop => _loopSubject;
         public IObservable<Unit> OnEndBeat => _endBeatSubject;
 
         internal void SetBeatMemo(MornBeatSetInfo setInfo)
@@ -78,6 +80,7 @@ namespace MornBeat
                 {
                     _loopStartDspTime += _beatMemo.LoopLength;
                     time -= _beatMemo.LoopLength;
+                    _loopSubject.OnNext(Unit.Default);
                     _waitLoop = false;
                 }
                 else
