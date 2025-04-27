@@ -56,7 +56,7 @@ namespace MornBeat
                 prev.UnloadWithFadeOutAsync(next, fadeDuration, ct),
                 next.PlayWithFadeIn(startDspTime, fadeDuration, ct),
             };
-            await UniTask.WhenAll(taskList).SuppressCancellationThrow();
+            await UniTask.WhenAll(taskList);
         }
 
         public async UniTask StopBeatAsync(float duration = 0, CancellationToken ct = default)
