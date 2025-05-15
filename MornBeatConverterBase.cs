@@ -14,6 +14,8 @@ namespace MornBeat
             var dictionary = new Dictionary<int, MornBeatAction<TEnum>>();
             // 空欄を除く
             var lines = textAsset.text.Replace(" ", "").Split('\n', '\r');
+            // 空行を除く
+            lines = Array.FindAll(lines, line => !string.IsNullOrEmpty(line));
             var tick = 0;
             for (var measure = 0; measure < lines.Length; measure++)
             {
