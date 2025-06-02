@@ -16,13 +16,13 @@ namespace MornBeat
             var lines = textAsset.text.Replace(" ", "").Split('\n', '\r');
             // 空行を除く
             lines = Array.FindAll(lines, line => !string.IsNullOrEmpty(line));
-            var tick = 0;
+            var score = new List<List<MornBeatAction<TEnum>>>();
             for (var measure = 0; measure < lines.Length; measure++)
             {
                 var text = lines[measure];
 
                 // IndexとLengthを無視
-                var tmpLineNotes = new List<MornBeatAction<TEnum>>();
+                var tmpMeasureNotes = new List<MornBeatAction<TEnum>>();
                 for (var index = 0; index < text.Length; index++)
                 {
                     var c = text[index];
@@ -42,32 +42,59 @@ namespace MornBeat
                             flag |= ToFlag(c2);
                         }
 
-                        tmpLineNotes.Add(new MornBeatAction<TEnum>(measure, -1, (TEnum)(flag as object)));
+                        tmpMeasureNotes.Add(new MornBeatAction<TEnum>(measure, -1, (TEnum)(flag as object)));
                         index = endIndex;
                     }
                     else
                     {
                         var noteType = ToFlag(c);
-                        tmpLineNotes.Add(new MornBeatAction<TEnum>(measure, -1, (TEnum)(noteType as object)));
+                        tmpMeasureNotes.Add(new MornBeatAction<TEnum>(measure, -1, (TEnum)(noteType as object)));
                     }
                 }
 
-                // IndexとLengthを再計算
-                var length = tmpLineNotes.Count;
-                for (var i = 0; i < length; i++)
+                score.Add(tmpMeasureNotes);
+            }
+
+            // scoreの各種小節Tickの最小公倍数を求める
+            var measureTick = 1;
+            foreach (var measureNotes in score)
+            {
+                if (measureNotes.Count == 0)
+                    continue;
+                var measureLength = measureNotes.Count;
+                measureTick = LCM(measureTick, measureLength);
+            }
+
+            // tickとして代入していく
+            for (var measure = 0; measure < score.Count; measure++)
+            {
+                var measureList = score[measure];
+                var baseTick = measure * measureTick;
+                var tickScale = measureTick / measureList.Count;
+                
+                for (var i = 0; i < measureList.Count; i++)
                 {
-                    var note = tmpLineNotes[i];
+                    var note = measureList[i];
+                    var tick = baseTick + i * tickScale;
                     if ((int)(object)note.BeatActionType != 0)
                     {
                         var newNote = new MornBeatAction<TEnum>(note.Measure, i, note.BeatActionType);
                         dictionary.Add(tick, newNote);
                     }
-
-                    tick++;
                 }
             }
-
+            
             return dictionary;
+        }
+
+        private int LCM(int a, int b)
+        {
+            int Gcd(int x, int y)
+            {
+                return y == 0 ? x : Gcd(y, x % y);
+            }
+
+            return a / Gcd(a, b) * b;
         }
 
         public int ToFlag(char c)
