@@ -66,24 +66,36 @@ namespace MornBeat
             }
 
             // tickとして代入していく
+            var sb = new StringBuilder();
             for (var measure = 0; measure < score.Count; measure++)
             {
                 var measureList = score[measure];
                 var baseTick = measure * measureTick;
                 var tickScale = measureTick / measureList.Count;
-                
                 for (var i = 0; i < measureList.Count; i++)
                 {
                     var note = measureList[i];
                     var tick = baseTick + i * tickScale;
-                    if ((int)(object)note.BeatActionType != 0)
+                    var noteType = (int)(object)note.BeatActionType;
+                    if (noteType != 0)
                     {
                         var newNote = new MornBeatAction<TEnum>(note.Measure, i, note.BeatActionType);
                         dictionary.Add(tick, newNote);
                     }
+
+                    sb.Append(ConvertToText(noteType));
+                    for (var j = 0; j < tickScale - 1; j++)
+                    {
+                        sb.Append("0");
+                    }
                 }
+
+                sb.AppendLine();
             }
-            
+
+            MornBeatGlobal.Log($"変換結果:\n"
+                               + $"MeasureTick : {measureTick}\n"
+                               + $"{sb}");
             return dictionary;
         }
 
@@ -131,15 +143,7 @@ namespace MornBeat
                 return list[0].ToString();
             }
 
-            var sb = new StringBuilder();
-            sb.Append(MornBeatUtil.OpenSplit);
-            foreach (var c in list)
-            {
-                sb.Append(c);
-            }
-
-            sb.Append(MornBeatUtil.CloseSplit);
-            return sb.ToString();
+            return $"{MornBeatUtil.OpenSplit}{string.Join("", list)}{MornBeatUtil.CloseSplit}";
         }
     }
 }
