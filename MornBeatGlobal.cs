@@ -23,5 +23,16 @@ namespace MornBeat
         {
             I.LogErrorInternal(message);
         }
+
+        internal static void SetDirty(Object obj)
+        {
+            I.SetDirtyInternal();
+        }
+
+        internal static void LogAndSetDirty(string message, Object obj)
+        {
+            Log(message);
+            SetDirty(obj);
+        }
     }
 }
