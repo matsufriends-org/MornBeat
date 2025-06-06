@@ -59,10 +59,11 @@ namespace MornBeat
             await UniTask.WhenAll(taskList);
         }
 
-        public async UniTask StopBeatAsync(float duration = 0, CancellationToken ct = default)
+        public async UniTask StopBeatAsync(float duration = 0, CancellationToken? ct = null)
         {
+            ct ??= destroyCancellationToken;
             var current = _audioSourceModule.GetCurrent(true);
-            await current.UnloadWithFadeOutAsync(null, duration, ct);
+            await current.UnloadWithFadeOutAsync(null, duration, ct.Value);
             _playModule.Reset();
         }
     }
