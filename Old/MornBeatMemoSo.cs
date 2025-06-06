@@ -74,9 +74,7 @@ namespace MornBeat
 
             var remove = _timingList.Count % _measureTickCount;
             for (var i = 0; i < remove; i++) _timingList.RemoveAt(_timingList.Count - 1);
-#if UNITY_EDITOR
-            EditorUtility.SetDirty(this);
-#endif
+            MornBeatGlobal.SetDirty(this);
         }
 
         public double GetBpm(double time)
