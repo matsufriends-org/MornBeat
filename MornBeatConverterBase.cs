@@ -9,7 +9,7 @@ namespace MornBeat
     {
         protected abstract (int, char)[] ConvertArray { get; }
 
-        public Dictionary<int, MornBeatAction<TEnum>> GetDictionary<TEnum>(TextAsset textAsset) where TEnum : Enum
+        public Dictionary<int, MornBeatAction<TEnum>> GetDictionary<TEnum>(TextAsset textAsset, int? beatMeasureTick = 0) where TEnum : Enum
         {
             var dictionary = new Dictionary<int, MornBeatAction<TEnum>>();
             // 空欄を除く
@@ -56,7 +56,7 @@ namespace MornBeat
             }
 
             // scoreの各種小節Tickの最小公倍数を求める
-            var measureTick = 1;
+            var measureTick = beatMeasureTick ?? 1;
             foreach (var measureNotes in score)
             {
                 if (measureNotes.Count == 0)
