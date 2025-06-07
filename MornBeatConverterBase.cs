@@ -9,7 +9,7 @@ namespace MornBeat
     {
         protected abstract (int, char)[] ConvertArray { get; }
 
-        public Dictionary<int, MornBeatAction<TEnum>> GetDictionary<TEnum>(TextAsset textAsset, int? beatMeasureTick = 0) where TEnum : Enum
+        public Dictionary<int, MornBeatAction<TEnum>> GetDictionary<TEnum>(TextAsset textAsset, int? beatMeasureTick = null) where TEnum : Enum
         {
             var dictionary = new Dictionary<int, MornBeatAction<TEnum>>();
             // 空欄を除く
