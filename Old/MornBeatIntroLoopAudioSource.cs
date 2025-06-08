@@ -33,12 +33,12 @@ namespace MornBeat
         }
         
         /// <summary> null可 </summary>
-        public async UniTask LoadAsync(AudioClip introClip, AudioClip loopClip, CancellationToken ct = default)
+        public async UniTask LoadAsync(AudioClip introClip, AudioClip loopClip, bool needLoop = true, CancellationToken ct = default)
         {
             _audioSourceIntro.clip = introClip;
             _audioSourceIntro.loop = false;
             _audioSourceLoop.clip = loopClip;
-            _audioSourceLoop.loop = true;
+            _audioSourceLoop.loop = needLoop;
             var taskList = new List<UniTask>();
             taskList.Add(introClip.LoadAsync(ct));
             taskList.Add(loopClip.LoadAsync(ct));

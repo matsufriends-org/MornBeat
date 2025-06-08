@@ -42,7 +42,7 @@ namespace MornBeat
 
             var prev = _audioSourceModule.GetCurrent();
             var next = _audioSourceModule.GetOther(true);
-            await next.LoadAsync(beatMemo.IntroClip, beatMemo.Clip, ct);
+            await next.LoadAsync(beatMemo.IntroClip, beatMemo.Clip, beatMemo.IsLoop, ct);
             if (startDspTime < AudioSettings.dspTime)
             {
                 var cached = startDspTime;

@@ -22,6 +22,7 @@ namespace MornBeat
         [SerializeField] private AudioClip _clip;
         [SerializeField] [Range(0, 1f)] private float _volume = 1f;
         [SerializeField] private float _offset;
+        [SerializeField] private float _loopAdditionalTime;
         public bool IsLoop => _isLoop;
         public int MeasureTickCount => _measureTickCount;
         public int BeatCount => _beatCount;
@@ -32,7 +33,7 @@ namespace MornBeat
         public AudioClip IntroClip => _introClip;
         public AudioClip Clip => _clip;
         public float IntroLength => _introClip == null ? 0 : _introClip.length;
-        public float LoopLength => _clip ==null ? 0 : _clip.length;
+        public float LoopLength => _clip ==null ? 0 : _clip.length + _loopAdditionalTime;
         public float TotalLength => IntroLength + LoopLength;
         public float Volume => _volume;
         internal float Offset => _offset;
