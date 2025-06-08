@@ -79,7 +79,7 @@ namespace MornBeat
                     var noteType = (int)(object)note.BeatActionType;
                     if (noteType != 0)
                     {
-                        var newNote = new MornBeatAction<TEnum>(note.Measure, i, note.BeatActionType);
+                        var newNote = new MornBeatAction<TEnum>(note.Measure, i * tickScale, note.BeatActionType);
                         dictionary.Add(tick, newNote);
                     }
 
