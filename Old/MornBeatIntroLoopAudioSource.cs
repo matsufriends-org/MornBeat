@@ -58,7 +58,6 @@ namespace MornBeat
                 MornBeatGlobal.LogError($"再生時刻が過去です。startDspTime: {startDspTime}, dspTime: {AudioSettings.dspTime}");
             }
             
-            MornBeatGlobal.Log($"PlayWithFadeIn startDspTime: {startDspTime}, dspTime: {AudioSettings.dspTime}");
             if (_audioSourceIntro.clip != null)
             {
                 // イントロ込みで再生
