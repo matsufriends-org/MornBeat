@@ -1,22 +1,24 @@
 ﻿#if USE_ARBOR
-using System.Threading;
 using Arbor;
 using UnityEngine;
 using VContainer;
 
 namespace MornBeat
 {
-    public class MornBeatStopAction : StateBehaviour
+    internal class BeatPlayState : StateBehaviour
     {
+        [SerializeField] private MornBeatMemoSo _beatMemo;
         [SerializeField] private StateLink _onComplete;
-        [SerializeField] private float _stopDuration;
-        [SerializeField] private bool _isIsolate;
         [Inject] private MornBeatControllerMono _beatController;
 
         public override async void OnStateBegin()
         {
-            CancellationToken? ct = _isIsolate ? null : CancellationTokenOnEnd;
-            await _beatController.StopBeatAsync(_stopDuration, ct);
+            await _beatController.StartAsync(
+                new MornBeatStartInfo
+                {
+                    BeatMemo = _beatMemo,
+                    Ct = CancellationTokenOnEnd,
+                });
             Transition(_onComplete);
         }
     }
