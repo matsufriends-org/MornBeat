@@ -101,6 +101,36 @@ namespace MornBeat
             return _bpmAndTimeInfoList[^1].Bpm;
         }
 
+        public float GetMinBpm()
+        {
+            if (_bpmAndTimeInfoList.Count == 0) return 60f;
+            var minBpm = _bpmAndTimeInfoList[0].Bpm;
+            for (var i = 1; i < _bpmAndTimeInfoList.Count; i++)
+            {
+                if (_bpmAndTimeInfoList[i].Bpm < minBpm)
+                {
+                    minBpm = _bpmAndTimeInfoList[i].Bpm;
+                }
+            }
+
+            return (float)minBpm;
+        }
+        
+        public float GetMaxBpm()
+        {
+            if (_bpmAndTimeInfoList.Count == 0) return 60f;
+            var maxBpm = _bpmAndTimeInfoList[0].Bpm;
+            for (var i = 1; i < _bpmAndTimeInfoList.Count; i++)
+            {
+                if (_bpmAndTimeInfoList[i].Bpm > maxBpm)
+                {
+                    maxBpm = _bpmAndTimeInfoList[i].Bpm;
+                }
+            }
+
+            return (float)maxBpm;
+        }
+        
         [Serializable]
         private struct BpmAndTimeInfo
         {
