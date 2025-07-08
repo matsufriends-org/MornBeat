@@ -153,5 +153,26 @@ namespace MornBeat
                 _audioSourceLoop.Stop();
             }
         }
+
+        /// <summary>AudioSourceを一時停止</summary>
+        public void Pause()
+        {
+            if (_audioSourceIntro.isPlaying)
+            {
+                _audioSourceIntro.Pause();
+            }
+            
+            if (_audioSourceLoop.isPlaying)
+            {
+                _audioSourceLoop.Pause();
+            }
+        }
+
+        /// <summary>AudioSourceを再開</summary>
+        public void UnPause()
+        {
+            _audioSourceIntro.UnPause();
+            _audioSourceLoop.UnPause();
+        }
     }
 }
