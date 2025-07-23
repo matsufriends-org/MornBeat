@@ -1,4 +1,6 @@
-﻿namespace MornBeat
+﻿using System;
+
+namespace MornBeat
 {
     /// <summary>1小節内における拍の構造体</summary>
     public readonly struct MornBeatTimingInfo
@@ -58,14 +60,10 @@
             return (CurrentTick + offsetTick) / (TickCountPerMeasure / beat);
         }
 
-        /// <summary>1小節[<paramref name="beat"/>]拍の、[<paramref name="numerator"/>]拍目に合うかどうか</summary>
-        /// <param name="numerator">特定の拍目</param>
-        /// <param name="beat">1小節に何拍あるか</param>
-        /// <param name="offsetTick">オフセットチック</param>
-        /// <returns>拍に合うかどうか</returns>
+        [Obsolete("IsJust へ移行")]
         public bool IsJustForSpecificBeat(int numerator, int beat, int offsetTick = 0)
         {
-            return (CurrentTick + offsetTick) % TickCountPerMeasure == numerator * TickCountPerMeasure / beat;
+            return IsJust(beat, numerator);
         }
         
         /// <summary>
