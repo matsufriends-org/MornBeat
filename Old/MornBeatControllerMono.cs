@@ -14,7 +14,7 @@ namespace MornBeat
         [SerializeField] private MornBeatPlayModule _playModule;
         private readonly Subject<Unit> _beforeUpdateBeatSubject = new();
         private readonly Subject<Unit> _afterUpdateBeatSubject = new();
-        private double _pauseDspTime;
+        private double _pauseStartDspTime;
         private float _previousTimeScale;
         public MornBeatPlayModule PlayModule => _playModule;
         public IObservable<Unit> OnBeforeUpdateBeat => _beforeUpdateBeatSubject;
@@ -26,6 +26,7 @@ namespace MornBeat
         {
             if (IsPaused)
             {
+                _playModule.UpdatePausing(AudioSettings.dspTime - _pauseStartDspTime);
                 return;
             }
 
@@ -87,7 +88,7 @@ namespace MornBeat
             }
 
             IsPaused = true;
-            _pauseDspTime = AudioSettings.dspTime;
+            _pauseStartDspTime = AudioSettings.dspTime;
             if (pauseTimeScale)
             {
                 _previousTimeScale = Time.timeScale;
@@ -101,6 +102,7 @@ namespace MornBeat
             // AudioSourceを一時停止
             var current = _audioSourceModule.GetCurrent();
             current.Pause();
+            _playModule.UpdatePausing(0);
         }
 
         /// <summary>音楽を再開する（カウントダウン対応）</summary>
@@ -130,8 +132,7 @@ namespace MornBeat
             }
 
             // ポーズ時間を計算して補正
-            var pauseDuration = resumeDspTime - _pauseDspTime;
-            _playModule.AddPauseDuration(pauseDuration);
+            _playModule.EndPausing(AudioSettings.dspTime - _pauseStartDspTime);
 
             // Time.timeScaleを戻す（Pauseで変更していた場合のみ）
             if (_previousTimeScale >= 0f)

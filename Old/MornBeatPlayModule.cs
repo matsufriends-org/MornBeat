@@ -14,7 +14,8 @@ namespace MornBeat
         [SerializeField] [ReadOnly] private double _loopStartDspTime;
         [SerializeField] [ReadOnly] private double _startDspTime;
         [SerializeField] [ReadOnly] private double _offsetTime;
-        [SerializeField] [ReadOnly] private double _pauseDuration;
+        [SerializeField] [ReadOnly] private double _pausingTime;
+        [SerializeField] [ReadOnly] private double _pauseOffset;
         private readonly Subject<MornBeatSetInfo> _initializeBeatSubject = new();
         private readonly Subject<MornBeatTimingInfo> _beatSubject = new();
         private readonly Subject<Unit> _loopSubject = new();
@@ -33,13 +34,13 @@ namespace MornBeat
                                           - _loopStartDspTime
                                           + (_beatMemo != null ? _beatMemo.Offset : 0)
                                           + _offsetTime
-                                          - _pauseDuration;
+                                          - _pauseOffset - _pausingTime;
         /// <summary> ループ後に値を継続（単位：秒）</summary>
         public double MusicPlayingTimeNoRepeat => AudioSettings.dspTime
                                                   - _startDspTime
                                                   + (_beatMemo != null ? _beatMemo.Offset : 0)
                                                   + _offsetTime
-                                                  - _pauseDuration;
+                                                  - _pauseOffset - _pausingTime;
         /// <summary> ループ時に0から初期化（単位：拍）</summary>
         public double MusicBeatTime => MusicPlayingTime / CurrentBeatLength;
         /// <summary> ループ後に値を継続（単位：拍）</summary>
@@ -58,7 +59,8 @@ namespace MornBeat
             _startDspTime = setInfo.StartDspTime;
             _loopStartDspTime = _startDspTime;
             _currentBpm = _beatMemo.GetBpm(0);
-            _pauseDuration = 0;
+            _pauseOffset = 0;
+            _pausingTime = 0;
             _initializeBeatSubject.OnNext(setInfo);
         }
 
@@ -70,7 +72,8 @@ namespace MornBeat
             _startDspTime = AudioSettings.dspTime;
             _loopStartDspTime = _startDspTime;
             _currentBpm = 120;
-            _pauseDuration = 0;
+            _pauseOffset = 0;
+            _pausingTime = 0;
         }
 
         internal void UpdateBeat()
@@ -165,9 +168,16 @@ namespace MornBeat
         }
 
         /// <summary>ポーズ時間を追加する</summary>
-        internal void AddPauseDuration(double duration)
+        internal void UpdatePausing(double pausingTime)
         {
-            _pauseDuration += duration;
+            _pausingTime = pausingTime;
+        }
+        
+        /// <summary>ポーズ時間を追加する</summary>
+        internal void EndPausing(double pausingTime)
+        {
+            _pausingTime = 0;
+            _pauseOffset += pausingTime;
         }
     }
 }
