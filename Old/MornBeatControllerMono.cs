@@ -17,8 +17,12 @@ namespace MornBeat
         private double _pauseStartDspTime;
         private float _previousTimeScale;
         public MornBeatPlayModule PlayModule => _playModule;
+        private readonly Subject<Unit> _onPauseSubject = new();
+        private readonly Subject<Unit> _onResumeSubject = new();
         public IObservable<Unit> OnBeforeUpdateBeat => _beforeUpdateBeatSubject;
         public IObservable<Unit> OnAfterUpdateBeat => _afterUpdateBeatSubject;
+        public IObservable<Unit> OnPause => _onPauseSubject;
+        public IObservable<Unit> OnResume => _onResumeSubject;
         public bool IsPaused { get; private set; }
         private const double DefaultStartDspTimeOffset = 0.5d;
 
@@ -102,6 +106,7 @@ namespace MornBeat
             // AudioSourceを一時停止
             var current = _audioSourceModule.GetCurrent();
             current.Pause();
+            _onPauseSubject.OnNext(Unit.Default);
             _playModule.UpdatePausing(0);
         }
 
@@ -143,6 +148,7 @@ namespace MornBeat
             // AudioSourceを再開
             var current = _audioSourceModule.GetCurrent();
             current.UnPause();
+            _onResumeSubject.OnNext(Unit.Default);
             IsPaused = false;
         }
     }
