@@ -13,6 +13,8 @@ namespace MornBeat
         [SerializeField] [ReadOnly] private double _loopStartDspTime;
         [SerializeField] [ReadOnly] private double _startDspTime;
         [SerializeField] [ReadOnly] private double _offsetTime;
+        [SerializeField] [ReadOnly] private double _pausingTime;
+        [SerializeField] [ReadOnly] private double _pauseOffset;
         private readonly Subject<MornBeatTimingInfo> _beatSubject = new();
         private readonly Subject<Unit> _loopSubject = new();
         private readonly Subject<Unit> _endBeatSubject = new();
@@ -22,9 +24,11 @@ namespace MornBeat
         public double CurrentBeatLength => 60d / CurrentBpm;
         public double StartDspTime => _startDspTime;
         /// <summary> ループ時に0から初期化（単位：秒）</summary>
-        public double MusicPlayingTime => AudioSettings.dspTime - _loopStartDspTime + _offsetTime;
+        public double MusicPlayingTime =>
+            AudioSettings.dspTime - _loopStartDspTime + _offsetTime - _pauseOffset - _pausingTime;
         /// <summary> ループ後に値を継続（単位：秒）</summary>
-        public double MusicPlayingTimeNoRepeat => AudioSettings.dspTime - _startDspTime + _offsetTime;
+        public double MusicPlayingTimeNoRepeat =>
+            AudioSettings.dspTime - _startDspTime + _offsetTime - _pauseOffset - _pausingTime;
         /// <summary> ループ時に0から初期化（単位：拍）</summary>
         public double MusicBeatTime => MusicPlayingTime / CurrentBeatLength;
         /// <summary> ループ後に値を継続（単位：拍）</summary>
@@ -40,6 +44,8 @@ namespace MornBeat
             _waitLoop = false;
             _startDspTime = setInfo.StartDspTime;
             _loopStartDspTime = _startDspTime;
+            _pauseOffset = 0;
+            _pausingTime = 0;
             _currentBpm = setInfo.BeatMemo.GetBpm(0);
         }
 
@@ -50,6 +56,8 @@ namespace MornBeat
             _startDspTime = AudioSettings.dspTime;
             _loopStartDspTime = _startDspTime;
             _currentBpm = 120;
+            _pauseOffset = 0;
+            _pausingTime = 0;
         }
 
         internal void SetOffsetTime(double offsetTime)
@@ -126,6 +134,17 @@ namespace MornBeat
             var aimTick = prevIsCloser ? preTick : nexTick;
             nearDif = aimTime - curTime;
             return aimTick;
+        }
+
+        internal void UpdatePausing(double pausingTime)
+        {
+            _pausingTime = pausingTime;
+        }
+        
+        internal void EndPausing(double pausingTime)
+        {
+            _pausingTime = 0;
+            _pauseOffset += pausingTime;
         }
     }
 }

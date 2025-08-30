@@ -10,8 +10,6 @@ namespace MornBeat
         [SerializeField] [ReadOnly] private MornBeatMemoSo _beatMemo;
         [SerializeField] [ReadOnly] private MornBeatTimingSolver _offsetTiming;
         [SerializeField] [ReadOnly] private MornBeatTimingSolver _pureTiming;
-        [SerializeField] [ReadOnly] private double _pausingTime;
-        [SerializeField] [ReadOnly] private double _pauseOffset;
         private readonly Subject<MornBeatSetInfo> _initializeBeatSubject = new();
         public MornBeatMemoSo BeatMemo => _beatMemo;
         public float SpeedScale => _offsetTiming.SpeedScale;
@@ -24,14 +22,10 @@ namespace MornBeat
         public int MeasureTick => _beatMemo?.MeasureTickCount ?? 0;
         /// <summary> ループ時に0から初期化（単位：秒）</summary>
         public double MusicPlayingTime => _offsetTiming.MusicPlayingTime
-                                          + (_beatMemo != null ? _beatMemo.Offset : 0)
-                                          - _pauseOffset
-                                          - _pausingTime;
+                                          + (_beatMemo != null ? _beatMemo.Offset : 0);
         /// <summary> ループ後に値を継続（単位：秒）</summary>
         public double MusicPlayingTimeNoRepeat => _offsetTiming.MusicPlayingTimeNoRepeat
-                                                  + (_beatMemo != null ? _beatMemo.Offset : 0)
-                                                  - _pauseOffset
-                                                  - _pausingTime;
+                                                  + (_beatMemo != null ? _beatMemo.Offset : 0);
         /// <summary> ループ時に0から初期化（単位：拍）</summary>
         public double MusicBeatTime => _offsetTiming.MusicBeatTime;
         /// <summary> ループ後に値を継続（単位：拍）</summary>
@@ -48,8 +42,6 @@ namespace MornBeat
             _beatMemo = setInfo.BeatMemo;
             _offsetTiming.SetBeatMemo(setInfo);
             _pureTiming.SetBeatMemo(setInfo);
-            _pauseOffset = 0;
-            _pausingTime = 0;
             _initializeBeatSubject.OnNext(setInfo);
         }
 
@@ -58,8 +50,6 @@ namespace MornBeat
             _beatMemo = null;
             _offsetTiming.Reset();
             _pureTiming.Reset();
-            _pauseOffset = 0;
-            _pausingTime = 0;
         }
 
         internal void UpdateBeat()
@@ -100,17 +90,16 @@ namespace MornBeat
             return _offsetTiming.GetNearTick(_beatMemo, out nearDif);
         }
 
-        /// <summary>ポーズ時間を追加する</summary>
         internal void UpdatePausing(double pausingTime)
         {
-            _pausingTime = pausingTime;
+            _offsetTiming.UpdatePausing(pausingTime);
+            _pureTiming.UpdatePausing(pausingTime);
         }
 
-        /// <summary>ポーズ時間を追加する</summary>
         internal void EndPausing(double pausingTime)
         {
-            _pausingTime = 0;
-            _pauseOffset += pausingTime;
+            _offsetTiming.EndPausing(pausingTime);
+            _pureTiming.EndPausing(pausingTime);
         }
     }
 }
