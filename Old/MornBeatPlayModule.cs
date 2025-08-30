@@ -21,11 +21,9 @@ namespace MornBeat
         public int BeatTick => _beatMemo?.BeatTick ?? 0;
         public int MeasureTick => _beatMemo?.MeasureTickCount ?? 0;
         /// <summary> ループ時に0から初期化（単位：秒）</summary>
-        public double MusicPlayingTime => _offsetTiming.MusicPlayingTime
-                                          + (_beatMemo != null ? _beatMemo.Offset : 0);
+        public double MusicPlayingTime => _offsetTiming.MusicPlayingTime;
         /// <summary> ループ後に値を継続（単位：秒）</summary>
-        public double MusicPlayingTimeNoRepeat => _offsetTiming.MusicPlayingTimeNoRepeat
-                                                  + (_beatMemo != null ? _beatMemo.Offset : 0);
+        public double MusicPlayingTimeNoRepeat => _offsetTiming.MusicPlayingTimeNoRepeat;
         /// <summary> ループ時に0から初期化（単位：拍）</summary>
         public double MusicBeatTime => _offsetTiming.MusicBeatTime;
         /// <summary> ループ後に値を継続（単位：拍）</summary>
@@ -54,13 +52,8 @@ namespace MornBeat
 
         internal void UpdateBeat()
         {
-            if (_beatMemo == null)
-            {
-                return;
-            }
-
-            _offsetTiming.UpdateBeat(_beatMemo);
-            _pureTiming.UpdateBeat(_beatMemo);
+            _offsetTiming.UpdateBeat();
+            _pureTiming.UpdateBeat();
         }
 
         public void SetOffsetTime(double offsetTime)
@@ -81,13 +74,7 @@ namespace MornBeat
 
         public int GetNearTick(out double nearDif)
         {
-            if (_beatMemo == null)
-            {
-                nearDif = double.MaxValue;
-                return -1;
-            }
-
-            return _offsetTiming.GetNearTick(_beatMemo, out nearDif);
+            return _offsetTiming.GetNearTick(out nearDif);
         }
 
         internal void UpdatePausing(double pausingTime)

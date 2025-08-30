@@ -7,6 +7,7 @@ namespace MornBeat
     [Serializable]
     public class MornBeatTimingSolver
     {
+        [SerializeField] [ReadOnly] private MornBeatMemoSo _beatMemo;
         [SerializeField] [ReadOnly] private double _currentBpm = 120;
         [SerializeField] [ReadOnly] private int _tick;
         [SerializeField] [ReadOnly] private bool _waitLoop;
@@ -24,11 +25,19 @@ namespace MornBeat
         public double CurrentBeatLength => 60d / CurrentBpm;
         public double StartDspTime => _startDspTime;
         /// <summary> ループ時に0から初期化（単位：秒）</summary>
-        public double MusicPlayingTime =>
-            AudioSettings.dspTime - _loopStartDspTime + _offsetTime - _pauseOffset - _pausingTime;
+        public double MusicPlayingTime => AudioSettings.dspTime
+                                          - _loopStartDspTime
+                                          + _offsetTime
+                                          - _pauseOffset
+                                          - _pausingTime
+                                          + (_beatMemo != null ? _beatMemo.Offset : 0);
         /// <summary> ループ後に値を継続（単位：秒）</summary>
-        public double MusicPlayingTimeNoRepeat =>
-            AudioSettings.dspTime - _startDspTime + _offsetTime - _pauseOffset - _pausingTime;
+        public double MusicPlayingTimeNoRepeat => AudioSettings.dspTime
+                                                  - _startDspTime
+                                                  + _offsetTime
+                                                  - _pauseOffset
+                                                  - _pausingTime
+                                                  + (_beatMemo != null ? _beatMemo.Offset : 0);
         /// <summary> ループ時に0から初期化（単位：拍）</summary>
         public double MusicBeatTime => MusicPlayingTime / CurrentBeatLength;
         /// <summary> ループ後に値を継続（単位：拍）</summary>
@@ -40,6 +49,7 @@ namespace MornBeat
 
         internal void SetBeatMemo(MornBeatSetInfo setInfo)
         {
+            _beatMemo = setInfo.BeatMemo;
             _tick = 0;
             _waitLoop = false;
             _startDspTime = setInfo.StartDspTime;
@@ -51,6 +61,7 @@ namespace MornBeat
 
         internal void Reset()
         {
+            _beatMemo = null;
             _tick = 0;
             _waitLoop = false;
             _startDspTime = AudioSettings.dspTime;
@@ -65,15 +76,20 @@ namespace MornBeat
             _offsetTime = offsetTime;
         }
 
-        internal void UpdateBeat(MornBeatMemoSo beatMemo)
+        internal void UpdateBeat()
         {
+            if (_beatMemo == null)
+            {
+                return;
+            }
+            
             var time = MusicPlayingTime;
             if (_waitLoop)
             {
-                if (time >= beatMemo.TotalLength)
+                if (time >= _beatMemo.TotalLength)
                 {
-                    _loopStartDspTime += beatMemo.LoopLength;
-                    time -= beatMemo.LoopLength;
+                    _loopStartDspTime += _beatMemo.LoopLength;
+                    time -= _beatMemo.LoopLength;
                     _loopSubject.OnNext(Unit.Default);
                     _waitLoop = false;
                 }
@@ -83,19 +99,19 @@ namespace MornBeat
                 }
             }
 
-            if (time < beatMemo.GetBeatTiming(_tick))
+            if (time < _beatMemo.GetBeatTiming(_tick))
             {
                 return;
             }
 
-            _currentBpm = beatMemo.GetBpm(time);
-            _beatSubject.OnNext(new MornBeatTimingInfo(_tick, beatMemo.MeasureTickCount));
+            _currentBpm = _beatMemo.GetBpm(time);
+            _beatSubject.OnNext(new MornBeatTimingInfo(_tick, _beatMemo.MeasureTickCount));
             _tick++;
-            if (_tick == beatMemo.TotalTickSum)
+            if (_tick == _beatMemo.TotalTickSum)
             {
-                if (beatMemo.IsLoop)
+                if (_beatMemo.IsLoop)
                 {
-                    _tick = beatMemo.IntroTickSum;
+                    _tick = _beatMemo.IntroTickSum;
                 }
 
                 _waitLoop = true;
@@ -103,12 +119,18 @@ namespace MornBeat
             }
         }
 
-        internal int GetNearTick(MornBeatMemoSo beatMemo, out double nearDif)
+        internal int GetNearTick(out double nearDif)
         {
+            if (_beatMemo == null)
+            {
+                nearDif = double.MaxValue;
+                return -1;
+            }
+            
             var preTick = _tick;
             var nexTick = preTick + 1;
-            var preTime = beatMemo.GetBeatTiming(preTick);
-            var nexTime = beatMemo.GetBeatTiming(nexTick);
+            var preTime = _beatMemo.GetBeatTiming(preTick);
+            var nexTime = _beatMemo.GetBeatTiming(nexTick);
             var curTime = MusicPlayingTime;
 
             // preTimeが現在時刻より手前に来るよう調整する
@@ -116,17 +138,17 @@ namespace MornBeat
             {
                 preTick -= 1;
                 nexTick -= 1;
-                preTime = beatMemo.GetBeatTiming(preTick);
-                nexTime = beatMemo.GetBeatTiming(nexTick);
+                preTime = _beatMemo.GetBeatTiming(preTick);
+                nexTime = _beatMemo.GetBeatTiming(nexTick);
             }
 
             // nexTimeが現在時刻より後に来るよう調整する
-            while (nexTime < curTime && nexTick + 1 < beatMemo.TotalTickSum)
+            while (nexTime < curTime && nexTick + 1 < _beatMemo.TotalTickSum)
             {
                 preTick += 1;
                 nexTick += 1;
-                preTime = beatMemo.GetBeatTiming(preTick);
-                nexTime = beatMemo.GetBeatTiming(nexTick);
+                preTime = _beatMemo.GetBeatTiming(preTick);
+                nexTime = _beatMemo.GetBeatTiming(nexTick);
             }
 
             var prevIsCloser = curTime < (preTime + nexTime) / 2f;
@@ -140,7 +162,7 @@ namespace MornBeat
         {
             _pausingTime = pausingTime;
         }
-        
+
         internal void EndPausing(double pausingTime)
         {
             _pausingTime = 0;
